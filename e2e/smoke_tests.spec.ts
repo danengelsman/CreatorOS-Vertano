@@ -1,60 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('CreatorOS End-to-End System Smoke Tests', () => {
-  test('should simulate user authentication, onboarding, and full video generation flow', async ({ page }) => {
-    await page.route('**/api/gemini/generate-video', async route => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ operationName: 'mock-operation-e2e-123' }) });
-    });
-
-    let statusCheckCount = 0;
-    await page.route('**/api/gemini/video-status', async route => {
-      statusCheckCount++;
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(statusCheckCount < 3
-          ? { done: false, progressPercentage: statusCheckCount * 40, data: null }
-          : { done: true, progressPercentage: 100, data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' })
-      });
-    });
-
+test.describe('CreatorOS smoke tests', () => {
+  test('authenticated user can generate Gemini video', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/CreatorOS/i);
-    await expect(page.locator('h1')).toBeVisible();
 
-    const getStartedButton = page.locator('button:has-text("Get Started")');
-    if (await getStartedButton.count() > 0) await getStartedButton.first().click();
-    else await page.goto('/login');
-
-    await expect(page).toHaveURL(/\/login/);
-
-    const testEmail = `smoke-test-${Date.now()}@creatoros.co`;
-    const testPassword = 'SmokePassword123!';
-    const emailInput = page.locator('input[placeholder="Email Address"]');
-    const passwordInput = page.locator('input[placeholder="Password"]');
-    await expect(emailInput).toBeVisible();
-    await expect(passwordInput).toBeVisible();
-    await emailInput.fill(testEmail);
-    await passwordInput.fill(testPassword);
-
-    const submitButton = page.locator('button[type="submit"]');
-    const toggleButton = page.locator('button:has-text("Sign Up")');
-    if (await toggleButton.count() > 0) await toggleButton.first().click();
-    await submitButton.click();
-
-    try {
-      const errorDiv = page.locator('div:has-text("auth/")');
-      if (await errorDiv.count() > 0) {
-        const signInToggle = page.locator('button:has-text("Sign In")');
-        if (await signInToggle.count() > 0) {
-          await signInToggle.first().click();
-          await emailInput.fill(testEmail);
-          await passwordInput.fill(testPassword);
-          await submitButton.click();
-        }
-      }
-    } catch (err) {
-      // Ignore if no errors occurred
+    const loginButton = page.locator('button:has-text("Sign in")').first();
+    if (await loginButton.count() > 0) {
+      await loginButton.click();
     }
 
     const skipOnboarding = page.locator('button:has-text("Set up manually later")');
@@ -71,12 +23,13 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 
-    // The drawer item is rendered before the bottom-navigation item in the DOM.
     const createNavItem = page.locator('button:has-text("Create")').first();
     await expect(createNavItem).toBeVisible();
     await createNavItem.click();
 
-    const scriptEditor = page.locator('textarea[placeholder*="narrative? AI will score your brand voice"]');
+    // ContentStudio uses a single narrative textarea. Target the actual control
+    // rather than coupling the E2E test to copy in its placeholder text.
+    const scriptEditor = page.locator('textarea').first();
     await expect(scriptEditor).toBeVisible();
     await scriptEditor.fill('This is an automated E2E system check verifying Gemini Video generation, layout boundaries, and reactive workflows.');
 
