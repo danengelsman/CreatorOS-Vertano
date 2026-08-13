@@ -2,8 +2,38 @@ import { test, expect } from '@playwright/test';
 
 test.describe('CreatorOS End-to-End System Smoke Tests', () => {
   test('should simulate user authentication, onboarding, and full video generation flow', async ({ page }) => {
-    // Keep Gemini calls inside the E2E test deterministic. We test CreatorOS's
-    // workflow/UI here, not Google's live video service.
+    // Keep external AI services deterministic. The E2E test verifies CreatorOS's
+    // workflow/UI; it does not depend on live Gemini generation.
+    await page.route('**/api/onboarding/chat', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'Perfect. I have enough information to build your channel style.',
+          isComplete: true,
+          summary: {
+            niche: 'AI tools and technology',
+            audience: 'Beginner content creators',
+            vibe: 'Friendly and encouraging',
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/onboarding/generate-brand', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          name: 'CreatorOS E2E Test Brand',
+          tagline: 'Simple AI tools for creators.',
+          colors: { primary: '#111111', secondary: '#ffffff' },
+          typography: { heading: 'Inter', body: 'Inter' },
+          voice: 'Friendly and encouraging',
+        }),
+      });
+    });
+
     await page.route('**/api/gemini/generate-video', async route => {
       await route.fulfill({
         status: 200,
@@ -64,12 +94,24 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
       // Ignore if authentication completed without an inline auth error.
     }
 
-    const skipOnboarding = page.locator('button:has-text("Set up manually later")');
+    // Build a deterministic test Brand Identity instead of skipping onboarding.
+    // ContentStudio requires a brand before it renders the editor.
+    const beginOnboarding = page.locator('button:has-text("Let\'s Begin!")');
     try {
-      await skipOnboarding.waitFor({ state: 'visible', timeout: 5000 });
-      await skipOnboarding.click();
+      await beginOnboarding.waitFor({ state: 'visible', timeout: 5000 });
+      await beginOnboarding.click();
+
+      const onboardingInput = page.locator('input[placeholder="Type your response here..."]');
+      await expect(onboardingInput).toBeVisible();
+      await onboardingInput.fill('AI tools and technology for beginner content creators');
+      await onboardingInput.press('Enter');
+
+      await expect(page.locator('text=Your Profile is Ready!')).toBeVisible({ timeout: 10000 });
+      await page.locator('button:has-text("Build My Channel Style")').click();
+      await expect(page.locator('text=Architecting Your Channel Style')).toBeVisible();
+      await expect(page.locator('text=Architecting Your Channel Style')).toBeHidden({ timeout: 10000 });
     } catch {
-      console.log('Onboarding step did not block or was not displayed, continuing.');
+      // If onboarding is already complete for this test account, continue.
     }
 
     const menuButton = page.locator('button:has-text("CreatorOS")').or(page.locator('header button').first());
