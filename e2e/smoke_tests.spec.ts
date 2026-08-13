@@ -21,11 +21,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
         body: JSON.stringify(
           statusCheckCount < 3
             ? { done: false, progressPercentage: statusCheckCount * 40, data: null }
-            : {
-                done: true,
-                progressPercentage: 100,
-                data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-              },
+            : { done: true, progressPercentage: 100, data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
         ),
       });
     });
@@ -35,11 +31,8 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     await expect(page.locator('h1')).toBeVisible();
 
     const getStartedButton = page.locator('button:has-text("Get Started")');
-    if (await getStartedButton.count() > 0) {
-      await getStartedButton.first().click();
-    } else {
-      await page.goto('/login');
-    }
+    if (await getStartedButton.count() > 0) await getStartedButton.first().click();
+    else await page.goto('/login');
 
     await expect(page).toHaveURL(/\/login/);
 
@@ -53,9 +46,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     await passwordInput.fill(testPassword);
 
     const toggleButton = page.locator('button:has-text("Sign Up")');
-    if (await toggleButton.count() > 0) {
-      await toggleButton.first().click();
-    }
+    if (await toggleButton.count() > 0) await toggleButton.first().click();
     await page.locator('button[type="submit"]').click();
 
     try {
@@ -81,25 +72,17 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
       console.log('Onboarding step did not block or was not displayed, continuing.');
     }
 
-    // Open the app menu and select the drawer's Create item. The bottom
-    // navigation also contains a Create button, so use the first drawer match.
-    const menuButton = page
-      .locator('button:has-text("CreatorOS")')
-      .or(page.locator('header button').first());
+    const menuButton = page.locator('button:has-text("CreatorOS"]').or(page.locator('header button').first());
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 
-    const createNavItem = page.locator('button:has-text("Create"]').first();
+    const createNavItem = page.locator('button:has-text("Create")').first();
     await expect(createNavItem).toBeVisible();
     await createNavItem.click();
 
-    // Avoid coupling the test to copy in the placeholder. ContentStudio's
-    // current editor is the first textarea on the Create screen.
     const scriptEditor = page.locator('textarea').first();
     await expect(scriptEditor).toBeVisible();
-    await scriptEditor.fill(
-      'This is an automated E2E system check verifying Gemini Video generation, layout boundaries, and reactive workflows.',
-    );
+    await scriptEditor.fill('This is an automated E2E system check verifying Gemini Video generation, layout boundaries, and reactive workflows.');
 
     const advancedSettingsButton = page.locator('button[title="Advanced Settings"]');
     await expect(advancedSettingsButton).toBeVisible();
