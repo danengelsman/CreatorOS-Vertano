@@ -20,10 +20,10 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ 
-            done: false, 
-            progressPercentage: statusCheckCount * 40, 
-            data: null 
+          body: JSON.stringify({
+            done: false,
+            progressPercentage: statusCheckCount * 40,
+            data: null
           })
         });
       } else {
@@ -31,10 +31,10 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ 
-            done: true, 
-            progressPercentage: 100, 
-            data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' 
+          body: JSON.stringify({
+            done: true,
+            progressPercentage: 100,
+            data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
           })
         });
       }
@@ -65,7 +65,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
 
     const emailInput = page.locator('input[placeholder="Email Address"]');
     const passwordInput = page.locator('input[placeholder="Password"]');
-    
+
     await expect(emailInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
 
@@ -75,7 +75,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     // Toggle registration if it's currently on Sign In
     const submitButton = page.locator('button[type="submit"]');
     const toggleButton = page.locator('button:has-text("Sign Up")');
-    
+
     if (await toggleButton.count() > 0) {
       await toggleButton.first().click();
     }
@@ -112,12 +112,14 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     }
 
     // 6. Navigation to the "Create" Page via mobile menu drawer (desktop & mobile compatible)
-    const menuButton = page.locator('button:has-text("CreatorOS")').or(page.locator('header button').first());
+    const menuButton = page.locator('button:has-text("CreatorOS").or(header button').first();
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 
-    // Select the "Create" navigation item inside drawer
-    const createNavItem = page.locator('button:has-text("Create")');
+    // Select the first visible "Create" navigation item in the opened drawer.
+    // The app also renders a bottom-navigation "Create" button, so an unscoped
+    // locator matches two elements and violates Playwright strict mode.
+    const createNavItem = page.locator('button:has-text("Create")').filter({ visible: true }).first();
     await expect(createNavItem).toBeVisible();
     await createNavItem.click();
 
