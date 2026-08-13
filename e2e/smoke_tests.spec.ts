@@ -72,7 +72,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
       console.log('Onboarding step did not block or was not displayed, continuing.');
     }
 
-    const menuButton = page.locator('button:has-text("CreatorOS"]').or(page.locator('header button').first());
+    const menuButton = page.locator('button:has-text("CreatorOS")').or(page.locator('header button').first());
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 
