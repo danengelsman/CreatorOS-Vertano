@@ -67,7 +67,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
 
     // Open the app menu and select the drawer's Create item. The bottom navigation
     // also contains a Create button, so an unscoped locator matches two elements.
-    const menuButton = page.locator('button:has-text("CreatorOS").or(header button').first();
+    const menuButton = page.locator('button:has-text("CreatorOS")').or(page.locator('header button').first());
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 
