@@ -27,9 +27,26 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
         body: JSON.stringify({
           name: 'CreatorOS E2E Test Brand',
           tagline: 'Simple AI tools for creators.',
-          colors: { primary: '#111111', secondary: '#ffffff' },
+          archetype: 'The Guide',
+          personality: 'friendly, clear, helpful',
+          colors: {
+            primary: '#111111',
+            secondary: '#ffffff',
+            accent: '#6366f1',
+            background: '#f8fafc',
+          },
           typography: { heading: 'Inter', body: 'Inter' },
-          voice: 'Friendly and encouraging',
+          visual_style: 'Clean, modern, beginner-friendly visuals.',
+          thumbnail_style: 'Bold text with a simple high-contrast layout.',
+          content_hooks: [
+            'Here is the easiest way to use this AI tool.',
+            'Most beginners miss this simple AI trick.',
+            'Let me show you how this works in under a minute.',
+          ],
+          catchphrases: [
+            'Keep creating.',
+            'Make it simple.',
+          ],
         }),
       });
     });
@@ -95,7 +112,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     }
 
     // Build a deterministic test Brand Identity instead of skipping onboarding.
-    // ContentStudio requires a brand before it renders the editor.
+    // ContentStudio requires a complete brand before it renders the editor.
     const beginOnboarding = page.locator('button:has-text("Let\'s Begin!")');
     try {
       await beginOnboarding.waitFor({ state: 'visible', timeout: 5000 });
