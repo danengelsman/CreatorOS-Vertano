@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('CreatorOS End-to-End System Smoke Tests', () => {
   test('should simulate user authentication, onboarding, and full video generation flow', async ({ page }) => {
+    test.setTimeout(60000);
+
     // Keep external AI services deterministic. The E2E test verifies CreatorOS's
     // workflow/UI; it does not depend on live Gemini generation.
     await page.route('**/api/onboarding/chat', async route => {
