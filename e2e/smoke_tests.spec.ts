@@ -16,15 +16,20 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ operationName: 'mock-operation-e2e-123' }) });
     });
 
+    // Keep the completed-video result fully local. The test only needs a stable
+    // video response so CreatorOS can exercise its Blob/object-URL path without
+    // depending on an external website or network/CORS behavior.
+    const localVideoDataUrl = 'data:video/mp4;base64,AAAA';
     let statusCheckCount = 0;
     await page.route('**/api/gemini/video-status', async route => {
       statusCheckCount++;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(statusCheckCount < 3
-          ? { done: false, progressPercentage: statusCheckCount * 40, data: null }
-          : { done: true, progressPercentage: 100, data: 'data:video/mp4;base64,AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAA0Btb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAD6AABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAkF0cmFrAAAAXHRraWQAAAADAAAAAAAAAAAAAAABAAAAAAAAA+gAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAIAAAACAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAPoAAAAAAABAAAAAAG5bWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAQABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABZG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAASRzdGJsAAAAwHN0c2QAAAAAAAAAAQAAALBhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAIAAgBIAAAASAAAAAAAAAABFUxhdmM2MS4xOS4xMDEgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAANmF2Y0MBZAAK/+EAGWdkAAqs2V+IiMBEAAADAAQAAAMACDxIllgBAAZo6+PLIsD9+PgAAAAAEHBhc3AAAAABAAAAAQAAABRidHJ0AAAAAAAAFigAAAAAAAAAGHN0dHMAAAAAAAAAAQAAAAEAAEAAAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAABAAAAAQAAABRzdHN6AAAAAAAAAsUAAAABAAAAFHN0Y28AAAAAAAAAAQAAA0YAAABhdWR0YQAAAFltZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAACxpbHN0AAAAJKl0b28AAAAcZGF0YQAAAAEAAAAATGF2ZjYxLjcuMTAzAAAAIZnJlZQAAABltZGF0AAABswAQBwAAAbYWPxixt+8=' }
+        body: JSON.stringify(
+          statusCheckCount < 3
+            ? { done: false, progressPercentage: statusCheckCount * 40, data: null }
+            : { done: true, progressPercentage: 100, data: localVideoDataUrl },
         ),
       });
     });
@@ -96,7 +101,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     await expect(generateBtn).toBeVisible();
     await generateBtn.click();
     await expect(page.locator('span:has-text("Gemini Preview")')).toBeVisible();
-    await expect(page.locator('video')).toBeVisible();
+    await expect(page.locator('video')).toBeVisible({ timeout: 30000 });
     console.log('E2E video generation completed and tested successfully!');
   });
 });
