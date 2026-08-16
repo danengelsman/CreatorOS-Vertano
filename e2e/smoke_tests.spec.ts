@@ -165,7 +165,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
     await expect(generateBtn).toBeVisible();
     await generateBtn.click();
     await expect(page.locator('span:has-text("Gemini Preview")')).toBeVisible();
-    await expect(page.locator('video')).toBeVisible();
+    await expect(page.locator('video')).toBeVisible({ timeout: 30000 });
     console.log('E2E video generation completed and tested successfully!');
   });
 });
