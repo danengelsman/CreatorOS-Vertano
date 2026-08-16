@@ -59,6 +59,10 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
       });
     });
 
+    // Keep the completed-video result fully local. The test only needs a stable
+    // video response so CreatorOS can exercise its Blob/object-URL path without
+    // depending on an external website or network/CORS behavior.
+    const localVideoDataUrl = 'data:video/mp4;base64,AAAA';
     let statusCheckCount = 0;
     await page.route('**/api/gemini/video-status', async route => {
       statusCheckCount++;
@@ -68,7 +72,7 @@ test.describe('CreatorOS End-to-End System Smoke Tests', () => {
         body: JSON.stringify(
           statusCheckCount < 3
             ? { done: false, progressPercentage: statusCheckCount * 40, data: null }
-            : { done: true, progressPercentage: 100, data: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+            : { done: true, progressPercentage: 100, data: localVideoDataUrl },
         ),
       });
     });
